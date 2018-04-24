@@ -27,7 +27,6 @@ namespace Complier
 
 		pos		errorPos;
 		string	errorMsg = "";
-	private:
 	};
 
 	enum class TokenType
@@ -53,16 +52,15 @@ namespace Complier
 		Token();
 		~Token();
 			
-	private:
 		TokenType	type	= TokenType::Undefine;
 		string		value	= "";
 		pos			tokenPos;
 	};
 
-	extern Token::Vec							tokenStream;
-	extern Error::Vec							errorList;
+	//extern Token::Vec							tokenStream;
+	//extern Error::Vec							errorList;
 	//extern unordered_map<string, Token::Ptr>	symbolTable;
 	
-	extern void Parse(string&);
+	extern void Parse(string&, Token::Vec&);
 
 }
