@@ -33,10 +33,8 @@ namespace Complier
 	{
 	}
 
-	/*Token::Vec							tokenStream;
-	Error::Vec							errorList;*/
 
-	/*void Parse(string &code)
+	void Parse(string& code, Token::Vec& tokenStream, Error::Vec& errorList)
 	{
 		enum class StateType
 		{
@@ -56,98 +54,22 @@ namespace Complier
 		StateType state = StateType::Start;
 		int line = 0;
 
-		while (curr != end)
+		auto AddToken = [](string::iterator begin, string::iterator end, TokenType type, int line, int index, Token::Vec& tokenStream)
 		{
-			if (*curr == '\n')
-			{
-				line++;
-				lineBegin = curr + 1;
-			}
-			switch (state)
-			{
-			case StateType::Start:
-				state =
-					isdigit(*curr) ? StateType::InInt :
-					isalpha(*curr) ? StateType::InIdentifier : (
-					*curr == '+' || 
-					*curr == '-' || 
-					*curr == '*' || 
-					*curr == '/' || 
-					*curr == '(' || 
-					*curr == ')' ||
-					*curr == ',' ||
-					*curr == ':' ||
-					*curr == '&' ||
-					*curr == '\\' ||
-					*curr == '%' ||
-					*curr == '<' ||
-					*curr == '>') ? StateType::InOperator :
-					*curr == '"' ? StateType::InString :
-					*curr == '#' ? StateType::InComment : (
-					*curr == ' ' ||
-					*curr == '\n' ||
-					*curr == '\r') ? StateType::Start :
-					StateType::Error;
-				tokenBegin = curr;
-				curr++;
-				break;
-			case StateType::InIdentifier:
-				if (!isalpha(*curr))
-				{
-					state = StateType::Start;
-					string value(tokenBegin, curr);
-					Token::Ptr token = make_shared<Token>(line, distance(lineBegin, tokenBegin), TokenType::Identifier, value);
-					tokenStream.push_back(token);
-					break;
-				}
-				curr++;
-				break;
-			case StateType::Error:
-			{
-				string msg = "Error input. Can not recognize the operator.";
-				Error::Ptr error = make_shared<Error>(line, distance(lineBegin, tokenBegin), msg);
-				errorList.push_back(error);
-			}
-			while (*curr != ' ' || *curr != '\r' || *curr != '\n')
-			{
-				curr++;
-				if (curr == end) break;
-			}
-				state = StateType::Start;
-				break;
-			}
-		}
-	}*/
-
-	void Parse(string& code, Token::Vec& tokenStream)
-	{
-		enum class StateType
+			string value(begin, end);
+			Token::Ptr token = make_shared<Token>(line, index, type, value);
+			tokenStream.push_back(token);
+		};
+		auto AddError = [](int line, int index, string& msg, Error::Vec& errorList)
 		{
-			Start,
-			End,
-			Error,
-			InInt,
-			InFloat,
-			InComment,
-			InString,
-			InIdentifier,
-			InOperator
+			Error::Ptr error = make_shared<Error>(line, index, msg);
+			errorList.push_back(error);
 		};
 
-		auto curr = code.begin(), end = code.end(), lineBegin = code.begin();
-		string::iterator tokenBegin;
-		StateType state = StateType::Start;
-		int line = 0;
-
 		while (curr != end)
 		{
-			if (*curr == '\n')
-			{
-				line++;
-				lineBegin = curr + 1;
-			}
 			switch (state)
-			{	
+			{
 			case StateType::Start:
 				state =
 					isdigit(*curr) ? StateType::InInt :
@@ -165,18 +87,30 @@ namespace Complier
 						*curr == '%' ||
 						*curr == '<' ||
 						*curr == '>') ? StateType::InOperator :
-					*curr == '"' ? StateType::InString :
-					*curr == '#' ? StateType::InComment : (
+						*curr == '"' ? StateType::InString :
+						*curr == '#' ? StateType::InComment : (
 						*curr == ' ' ||
 						*curr == '\n' ||
 						*curr == '\t' ||
 						*curr == '\r') ? StateType::Start :
 					StateType::Error;
 				tokenBegin = curr;
+				if (*curr == '\n')
+				{
+					line++;
+					lineBegin = curr + 1;
+				}
 				break;
 			case StateType::End:
 				break;
 			case StateType::Error:
+			if (*curr == '\n' || *curr == '\t' || *curr == '\r' || *curr  == ' ')
+			{
+				state = StateType::Start;
+				string msg = "Can not recognize the error input. ";
+				AddError(line, distance(lineBegin, tokenBegin), msg, errorList);
+				curr--;
+			}
 				break;
 			case StateType::InInt:
 				break;
@@ -187,12 +121,11 @@ namespace Complier
 			case StateType::InString:
 				break;
 			case StateType::InIdentifier:
-				if ((curr + 1) == end || !isalpha(*(curr + 1)))
+				if (!isalpha(*curr))
 				{
 					state = StateType::Start;
-					string value(tokenBegin, curr + 1);
-					Token::Ptr token = make_shared<Token>(line, distance(lineBegin, tokenBegin), TokenType::Identifier, value);
-					tokenStream.push_back(token);
+					AddToken(tokenBegin, curr, TokenType::Identifier, line, distance(lineBegin, tokenBegin), tokenStream);
+					curr--;
 				}
 				break;
 			case StateType::InOperator:
@@ -202,5 +135,35 @@ namespace Complier
 			}
 			curr++;
 		}
+
+		switch (state)
+		{
+		case StateType::Start:
+			break;
+		case StateType::End:
+			break;
+		case StateType::Error:
+		{
+			string msg = "Can not recognize the error input. ";
+			AddError(line, distance(lineBegin, tokenBegin), msg, errorList);
+		}
+		break;
+		case StateType::InInt:
+			break;
+		case StateType::InFloat:
+			break;
+		case StateType::InComment:
+			break;
+		case StateType::InString:
+			break;
+		case StateType::InIdentifier:
+			AddToken(tokenBegin, end, TokenType::Identifier, line, distance(lineBegin, tokenBegin), tokenStream);
+			break;
+		case StateType::InOperator:
+			break;
+		default:
+			break;
+		}
 	}
+
 }

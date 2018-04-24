@@ -5,9 +5,11 @@ using namespace Complier;
 TEST_CASE(testIdentifier)
 {
 	{
-		string code = "idone idtwo idthree  ";
+		string code = R"wu(idone idtwo idthree  
+)wu";
 		Token::Vec tokenStream;
-		Parse(code, tokenStream);
+		Error::Vec errorList;
+		Parse(code, tokenStream, errorList);
 		TEST_ASSERT(tokenStream.size() == 3);
 		TEST_ASSERT(tokenStream[0]->tokenPos.line == 0);
 		TEST_ASSERT(tokenStream[0]->tokenPos.index == 0);
@@ -17,12 +19,30 @@ TEST_CASE(testIdentifier)
 		TEST_ASSERT(tokenStream[2]->tokenPos.index == 12);
 	}
 	{
+		string code = R"wu(a b
+c
+	d)wu";
+		Token::Vec tokenStream;
+		Error::Vec errorList;
+		Parse(code, tokenStream, errorList);
+		TEST_ASSERT(tokenStream.size() == 4);
+		TEST_ASSERT(tokenStream[0]->tokenPos.line == 0);
+		TEST_ASSERT(tokenStream[0]->tokenPos.index == 0);
+		TEST_ASSERT(tokenStream[1]->tokenPos.line == 0);
+		TEST_ASSERT(tokenStream[1]->tokenPos.index == 2);
+		TEST_ASSERT(tokenStream[2]->tokenPos.line == 1);
+		TEST_ASSERT(tokenStream[2]->tokenPos.index == 0);
+		TEST_ASSERT(tokenStream[3]->tokenPos.line == 2);
+		TEST_ASSERT(tokenStream[3]->tokenPos.index == 1);
+	}
+	{
 		string code = R"wu(	idone 
 idtwo 
 
 	idthree)wu";
 		Token::Vec tokenStream;
-		Parse(code, tokenStream);
+		Error::Vec errorList;
+		Parse(code, tokenStream, errorList);
 		TEST_ASSERT(tokenStream.size() == 3);
 		TEST_ASSERT(tokenStream[0]->tokenPos.line == 0);
 		TEST_ASSERT(tokenStream[0]->tokenPos.index == 1);
@@ -33,33 +53,30 @@ idtwo
 	}
 }
 
+TEST_CASE(testWrongInput)
+{
+	{
+		string code = R"wu(a[bc asg
+s]
+[[]	a
+])wu";
+		Token::Vec tokenStream;
+		Error::Vec errorList;
+		Parse(code, tokenStream, errorList);
+		TEST_ASSERT(tokenStream.size() == 4);
+		TEST_ASSERT(tokenStream[0]->tokenPos.line == 0);
+		TEST_ASSERT(tokenStream[0]->tokenPos.index == 0);
+		TEST_ASSERT(errorList.size() == 4);
+		TEST_ASSERT(errorList[0]->errorPos.line == 0);
+		TEST_ASSERT(errorList[0]->errorPos.index == 1);
+		TEST_ASSERT(errorList[1]->errorPos.line == 1);
+		TEST_ASSERT(errorList[1]->errorPos.index == 1);
+		TEST_ASSERT(errorList[2]->errorPos.line == 2);
+		TEST_ASSERT(errorList[2]->errorPos.index == 0);
+		TEST_ASSERT(errorList[3]->errorPos.line == 3);
+		TEST_ASSERT(errorList[3]->errorPos.index == 0);
+	}
 
-
-//TEST_CASE(wrongInput)
-//{
-//	
-//	{
-//		string code = "asd[ ";
-//		Parse(code);
-//		TEST_ASSERT(errorList.size() == 1);
-//		TEST_ASSERT(errorList[0]->errorPos.line == 0);
-//		TEST_ASSERT(errorList[0]->errorPos.index == 3);
-//	}
-//	{
-//		string code = "asd[";
-//		Parse(code);
-//		TEST_ASSERT(errorList.size() == 1);
-//		TEST_ASSERT(errorList[0]->errorPos.line == 0);
-//		TEST_ASSERT(errorList[0]->errorPos.index == 3);
-//	}
-//	{
-//		string code = R"wu(asd[
-//			)wu";
-//		Parse(code);
-//		TEST_ASSERT(errorList.size() == 1);
-//		TEST_ASSERT(errorList[0]->errorPos.line == 0);
-//		TEST_ASSERT(errorList[0]->errorPos.index == 3);
-//	}
-//}
+}
 
 
