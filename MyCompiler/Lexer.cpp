@@ -34,6 +34,7 @@ namespace Complier
 	}
 
 
+
 	void Parse(string& code, Token::Vec& tokenStream, Error::Vec& errorList)
 	{
 		enum class StateType
@@ -65,7 +66,14 @@ namespace Complier
 			Error::Ptr error = make_shared<Error>(line, index, msg);
 			errorList.push_back(error);
 		};
-
+		auto IsSymbolName = [](string::iterator begin, string::iterator end) ->bool
+		{
+			string value(begin, end);
+			return
+				(value == ("int") ||
+					value == ("float") ||
+					value == ("string")) ? true : false;
+		};
 		while (curr != end)
 		{
 			switch (state)
@@ -75,6 +83,7 @@ namespace Complier
 					isdigit(*curr) ? StateType::InInt :
 					isalpha(*curr) ? StateType::InIdentifier : (
 						*curr == '+' ||
+						*curr == '=' ||
 						*curr == '-' ||
 						*curr == '*' ||
 						*curr == '/' ||
@@ -146,14 +155,15 @@ namespace Complier
 				{
 					state = StateType::Start;
 					AddToken(tokenBegin, curr, TokenType::String, line, distance(lineBegin, tokenBegin), tokenStream);
-					curr--;
 				};
 				break;
 			case StateType::InIdentifier:
 				if (!isalpha(*curr))
 				{
 					state = StateType::Start;
-					AddToken(tokenBegin, curr, TokenType::Identifier, line, distance(lineBegin, tokenBegin), tokenStream);
+					IsSymbolName(tokenBegin, curr) ?
+						AddToken(tokenBegin, curr, TokenType::Reserved, line, distance(lineBegin, tokenBegin), tokenStream) :
+						AddToken(tokenBegin, curr, TokenType::Identifier, line, distance(lineBegin, tokenBegin), tokenStream);
 					curr--;
 				}
 				break;
@@ -191,7 +201,9 @@ namespace Complier
 			AddToken(tokenBegin, curr, TokenType::String, line, distance(lineBegin, tokenBegin), tokenStream);
 			break;
 		case StateType::InIdentifier:
-			AddToken(tokenBegin, end, TokenType::Identifier, line, distance(lineBegin, tokenBegin), tokenStream);
+			IsSymbolName(tokenBegin, curr) ?
+				AddToken(tokenBegin, curr, TokenType::Reserved, line, distance(lineBegin, tokenBegin), tokenStream) :
+				AddToken(tokenBegin, curr, TokenType::Identifier, line, distance(lineBegin, tokenBegin), tokenStream);
 			break;
 		case StateType::InOperator:
 			AddToken(tokenBegin, curr, TokenType::Operator, line, distance(lineBegin, tokenBegin), tokenStream);

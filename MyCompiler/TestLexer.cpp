@@ -114,3 +114,27 @@ TEST_CASE(testNumber)
 }
 
 
+TEST_CASE(testCode)
+{
+	{
+		string code = R"wu(
+	int i = 5 float f = 1.2
+	string str = "happy"	#very happy
+)wu";
+		Token::Vec tokenStream;
+		Error::Vec errorList;
+		Parse(code, tokenStream, errorList);
+		TEST_ASSERT(tokenStream.size() == 13);
+	}
+	{
+		string code = R"wu(
+"ha"#very
+)wu";
+		Token::Vec tokenStream;
+		Error::Vec errorList;
+		Parse(code, tokenStream, errorList);
+		TEST_ASSERT(tokenStream.size() == 13);
+	}
+
+}
+

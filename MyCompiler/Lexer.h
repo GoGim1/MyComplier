@@ -59,7 +59,7 @@ namespace Complier
 
 	//extern Token::Vec							tokenStream;
 	//extern Error::Vec							errorList;
-	//extern unordered_map<string, Token::Ptr>	symbolTable;
+	extern unordered_map<string, Token::Ptr>	symbolTable;
 	
 
 	extern void Parse(string& code, Token::Vec& tokenStream, Error::Vec& errorList);
