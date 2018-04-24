@@ -104,7 +104,7 @@ namespace Complier
 			case StateType::End:
 				break;
 			case StateType::Error:
-			if (*curr == '\n' || *curr == '\t' || *curr == '\r' || *curr  == ' ')
+				if (*curr == '\n' || *curr == '\t' || *curr == '\r' || *curr  == ' ')
 			{
 				state = StateType::Start;
 				string msg = "Can not recognize the error input. ";
@@ -113,12 +113,41 @@ namespace Complier
 			}
 				break;
 			case StateType::InInt:
+				if (*curr == '.')
+				{ 
+					state = StateType::InFloat;
+					break;
+				}
+				if (!isdigit(*curr))
+				{
+					state = StateType::Start;
+					AddToken(tokenBegin, curr, TokenType::Int, line, distance(lineBegin, tokenBegin), tokenStream);
+					curr--;
+				}
 				break;
 			case StateType::InFloat:
+				if (!isdigit(*curr))
+				{
+					state = StateType::Start;
+					AddToken(tokenBegin, curr, TokenType::Float, line, distance(lineBegin, tokenBegin), tokenStream);
+					curr--;
+				}
 				break;
 			case StateType::InComment:
+				if (*curr == '\n')
+				{
+					state = StateType::Start;
+					AddToken(tokenBegin, curr, TokenType::Comment, line, distance(lineBegin, tokenBegin), tokenStream);
+					curr--;
+				};
 				break;
 			case StateType::InString:
+				if (*curr == '"')
+				{
+					state = StateType::Start;
+					AddToken(tokenBegin, curr, TokenType::String, line, distance(lineBegin, tokenBegin), tokenStream);
+					curr--;
+				};
 				break;
 			case StateType::InIdentifier:
 				if (!isalpha(*curr))
@@ -129,6 +158,9 @@ namespace Complier
 				}
 				break;
 			case StateType::InOperator:
+				state = StateType::Start;
+				AddToken(tokenBegin, curr, TokenType::Operator, line, distance(lineBegin, tokenBegin), tokenStream);
+				curr--;
 				break;
 			default:
 				break;
@@ -140,8 +172,6 @@ namespace Complier
 		{
 		case StateType::Start:
 			break;
-		case StateType::End:
-			break;
 		case StateType::Error:
 		{
 			string msg = "Can not recognize the error input. ";
@@ -149,17 +179,22 @@ namespace Complier
 		}
 		break;
 		case StateType::InInt:
+			AddToken(tokenBegin, curr, TokenType::Int, line, distance(lineBegin, tokenBegin), tokenStream);
 			break;
 		case StateType::InFloat:
+			AddToken(tokenBegin, curr, TokenType::Float, line, distance(lineBegin, tokenBegin), tokenStream);
 			break;
 		case StateType::InComment:
+			AddToken(tokenBegin, curr, TokenType::Comment, line, distance(lineBegin, tokenBegin), tokenStream);
 			break;
 		case StateType::InString:
+			AddToken(tokenBegin, curr, TokenType::String, line, distance(lineBegin, tokenBegin), tokenStream);
 			break;
 		case StateType::InIdentifier:
 			AddToken(tokenBegin, end, TokenType::Identifier, line, distance(lineBegin, tokenBegin), tokenStream);
 			break;
 		case StateType::InOperator:
+			AddToken(tokenBegin, curr, TokenType::Operator, line, distance(lineBegin, tokenBegin), tokenStream);
 			break;
 		default:
 			break;

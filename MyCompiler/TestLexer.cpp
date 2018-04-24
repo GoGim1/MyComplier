@@ -79,4 +79,38 @@ s]
 
 }
 
+TEST_CASE(testComment)
+{
+	{
+		string code = R"wu(#a
+#a bc
+ab#a)wu";
+		Token::Vec tokenStream;
+		Error::Vec errorList;
+		Parse(code, tokenStream, errorList);
+		TEST_ASSERT(tokenStream.size() == 4);
+		TEST_ASSERT(tokenStream[0]->tokenPos.line == 0);
+		TEST_ASSERT(tokenStream[0]->tokenPos.index == 0);
+		TEST_ASSERT(tokenStream[1]->tokenPos.line == 1);
+		TEST_ASSERT(tokenStream[1]->tokenPos.index == 0);
+		TEST_ASSERT(tokenStream[2]->tokenPos.line == 2);
+		TEST_ASSERT(tokenStream[2]->tokenPos.index == 0);
+		TEST_ASSERT(tokenStream[3]->tokenPos.line == 2);
+		TEST_ASSERT(tokenStream[3]->tokenPos.index == 2);
+	}
+}
+
+TEST_CASE(testNumber)
+{
+	{
+		string code = R"wu(12 35
+	54.2 1.
+3.)wu";
+		Token::Vec tokenStream;
+		Error::Vec errorList;
+		Parse(code, tokenStream, errorList);
+		TEST_ASSERT(tokenStream.size() == 5);
+	}
+}
+
 

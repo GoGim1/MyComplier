@@ -38,7 +38,7 @@ namespace Complier
 		Int,
 		Float,
 		Identifier,
-		Symbol
+		Operator
 	};
 
 	class Token
